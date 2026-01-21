@@ -1,0 +1,355 @@
+---
+import Base from '../layouts/Base.astro';
+import ListingCard from '../components/ListingCard.astro';
+import InternalLinks from '../components/InternalLinks.astro';
+import OwnerCTA from '../components/OwnerCTA.astro';
+import CategoryNav from '../components/CategoryNav.astro';
+import NetworkLinks from '../components/NetworkLinks.astro';
+
+// Safe fetch helper for build-time API calls
+async function safeFetchJson(url: string): Promise<any[]> {
+    try {
+        console.log('Fetching:', url);
+        const res = await fetch(url, {
+            headers: { 
+                'Accept': 'application/json',
+                'User-Agent': 'ErotikMaps-Satellite-Builder/1.0',
+                'X-Satellite-Build': 'true'
+            }
+        });
+        
+        if (!res.ok) {
+            console.error('API returned ' + res.status + ': ' + res.statusText);
+            return [];
+        }
+        
+        const ct = res.headers.get('content-type') || '';
+        if (!ct.includes('application/json')) {
+            console.error('Expected JSON but got: ' + ct);
+            return [];
+        }
+        
+        const data = await res.json();
+        return data.data || [];
+    } catch (error) {
+        console.error('Fetch failed:', error);
+        return [];
+    }
+}
+
+// Fetch listings from API at build time
+const apiUrl = 'https://www.erotikmaps.com/api/v1/satellite/listings?city=hanoi&category=erotic-massage&limit=100';
+const listings = await safeFetchJson(apiUrl);
+
+const faq = [{"question":"What is the best Erotic massage in Hanoi?","answer":"<p>While specific top spots evolve, the finest <strong>erotic massage in Hanoi<\/strong> hides in the Old Quarter and Tay Ho district, blending Vietnamese <em>ao dai<\/em>-clad therapists with Nuru techniques under red silk lanterns. Seek venues near Hoan Kiem Lake for discreet luxury, offering 90-minute sessions with lotus oils and happy endings. Reputation hinges on reviews praising hygiene, English-speaking staff, and post-massage green tea. For authenticity, ask locals about 'massage đặc biệt'—always prioritize verified spots amid Hanoi's humid evenings for peak relaxation. Our directory will soon spotlight verified elite parlors.<\/p>"},{"question":"How much does Erotic massage cost in Hanoi?","answer":"<p><strong>Erotic massage in Hanoi<\/strong> typically costs 500,000-1,200,000 VND ($20-50 USD) for a 60-minute standard session, escalating to 1,500,000-2,500,000 VND ($60-100 USD) for premium 90-minute experiences with extras like body slides or prostate play. Prices dip in local spots around Long Bien, while upscale Tay Ho venues add jacuzzi fees. Pay in VND cash; tips of 200,000 VND are customary. Haggle politely in markets but not in parlors—factor in Hanoi's affordable vibe for value-packed indulgence.<\/p>"},{"question":"Is Erotic massage legal in Vietnam?","answer":"<p>Standard massage is legal in Vietnam, but <strong>erotic massage in Hanoi<\/strong> occupies a gray area—non-penetrative sensual services are tolerated discreetly, yet explicit acts risk fines or raids under vice laws. Hanoi enforces stricter norms than Ho Chi Minh City due to its conservative north. Visitors should stick to licensed parlors, avoid public solicitation, and use VPNs for bookings. No arrests for patrons typically, but respect local customs: no photos, quiet demeanor. Prioritize safety—our verified listings (coming soon) ensure compliant venues.<\/p>"},{"question":"What are the best areas for Erotic massage in Hanoi?","answer":"<p>The prime zones for <strong>erotic massage Hanoi<\/strong> are the Old Quarter (Hoan Kiem District) with its narrow alleys and neon-lit facades, Tay Ho (West Lake) for expat-friendly luxury near cyclos and cafes, and Hai Ba Trung for chic hidden spas. Avoid overly touristy spots near Hanoi Opera House; instead, venture to Pham Ngu Lao for authentic finds. These areas buzz post-8 PM, blending with bia hoi bars—perfect for Hanoi's steamy tropical nights and easy taxi access.<\/p>"},{"question":"What should I know before visiting a Erotic massage venue in Hanoi?","answer":"<p>Before indulging in <strong>erotic massage in Hanoi<\/strong>, learn basic Vietnamese phrases like 'xin chào' (hello) and 'cảm ơn' (thank you) for rapport. Dress modestly en route, arrive sober, and confirm services via discreet signals. Expect humid rooms—shower first. Negotiate extras upfront, tip generously in VND, and use Grab taxis for safety. Respect no-touch rules initially; Hanoi venues value politeness amid cyclo horns and pho steam. Carry ID, avoid peak rain hours, and hydrate with nuoc mia post-session for the full sensual recharge.<\/p>"}];
+const canonicalUrl = 'https://hanoieroticmassage.com/';
+
+// HTML content from AI (stored as variables for set:html)
+const introHtml = `<p>In the heart of Hanoi, where ancient temples whisper tales of emperors and the scent of pho lingers in humid tropical air, <strong>erotic massage in Hanoi</strong> offers a tantalizing fusion of tradition and temptation. This northern Vietnamese capital, with its French colonial architecture and labyrinthine streets, has quietly cultivated a discreet scene for intimate wellness experiences that honor the body's deepest desires.</p><p>What sets <em>erotic massage in Hanoi</em> apart is its infusion of local culture—therapists trained in traditional Vietnamese techniques like <strong>lăng cân</strong> (a rhythmic pressing method) elevate standard sessions into erotic artistry. Visitors can expect dimly lit rooms adorned with silk lanterns, ambient sounds of silk drums, and skilled hands gliding with lotus-infused oils, all while navigating the city's characteristic monsoon-season humidity that heightens every sensation.</p><p>Hanoi's reputation for this niche dates back to the post-war economic boom, when discreet parlors emerged around the bustling Old Quarter and Hoan Kiem Lake. Districts like Ba Dinh, home to government buildings, and Hai Ba Trung, with its chic cafes, host upscale venues catering to discerning locals and expats. Unlike the bolder scenes in Saigon, Hanoi's offerings emphasize subtlety, reflecting the reserved Vietnamese demeanor.</p><p>Whether you're a first-time traveler mesmerized by Hanoi's cyclos or a repeat visitor seeking deeper indulgence, <strong>erotic massage Hanoi</strong> promises an authentic escape. From the misty Perfume River views to the electric buzz of night markets, these experiences capture the city's enigmatic allure, leaving you revitalized amid its timeless charm.</p><p>Prepare to surrender to Hanoi's seductive undercurrents—where every touch tells a story of passion woven into the fabric of this imperial gem.</p>
+
+<h2>About Hanoi</h2>
+<p>Hanoi, Vietnam's poetic capital, enchants with its blend of 1,000-year-old history and modern pulse. Stroll around Hoan Kiem Lake at dawn to watch locals practice <strong>tai chi</strong> under banyan trees, or lose yourself in the Old Quarter's 36 streets, each dedicated to a trade like silk or silver. The tropical climate, with balmy evenings and occasional downpours, adds a steamy intimacy to evenings exploring street food stalls serving <em>bún chả</em>.</p><p>Cultural gems like the Temple of Literature and Hoa Lo Prison Museum offer daytime depth, while nightlife thrives in Ta Hien Street's beer halls, where <strong>bia hơi</strong> flows cheaply. Hanoi's French legacy shines in opera houses and baguette vendors, making it a gateway to Vietnam's north, from Ha Long Bay cruises to Sapa's rice terraces.</p><p>For sensual seekers, Hanoi's understated elegance—think lantern-lit alleys and jasmine-scented air—sets the perfect stage for indulgent pursuits.</p>
+
+<h2>What to Expect</h2>
+<p>At an <strong>erotic massage in Hanoi</strong>, anticipate a warm welcome in a private room scented with lemongrass and ginger. Sessions typically last 60-90 minutes, starting with a traditional Vietnamese scrub using rice powder, transitioning to sensual body-to-body glides with ylang-ylang oils. Therapists, often speaking basic English, prioritize discretion and your comfort amid soft Hanoi folk music.</p><p>Prices range from 500,000-1,500,000 VND (about $20-60 USD), varying by venue location and extras like Nuru gel play. Upscale spots in Tay Ho district charge more for jacuzzi add-ons. Etiquette demands politeness—greet with a nod, tip 10-20% in cash, and communicate boundaries clearly, respecting Vietnam's conservative social norms.</p><p>Expect a hygienic, professional vibe; many parlors offer incall services near nightlife hubs. Hydrate post-session in Hanoi's humid weather to fully savor the lingering bliss.</p>`;
+const bottomHtml = `<p>Immerse yourself in the alluring world of <strong>erotic massage in Hanoi</strong>, where Vietnam's capital weaves sensuality into its historic tapestry. From the misty allure of Hoan Kiem to the hidden gems of Ba Dinh, these experiences promise unforgettable ecstasy tailored to your desires.</p><p>Currently, our directory features <strong>0 verified listings</strong> for erotic massage in Hanoi, ensuring only the most authentic, vetted venues make the cut. We're actively scouting Hanoi's discreet parlors to bring you premier recommendations soon—stay tuned for updates on this intoxicating scene.</p><p>Ready to explore? Bookmark our site, subscribe for alerts on new Hanoi erotic massage listings, and plan your visit. Surrender to the city's seductive rhythm—your sensual Hanoi adventure awaits. Contact us for personalized tips on navigating this exotic niche.</p>`;
+
+// Split listings for different sections
+const premiumListings = listings.filter((l: any) => l.is_premium);
+const goldListings = listings.filter((l: any) => l.is_gold);
+const regularListings = listings.filter((l: any) => !l.is_premium);
+
+// Get top 5 listings for hero slider (Gold first, then Premium)
+const heroListings = [...goldListings, ...premiumListings.filter((l: any) => !l.is_gold), ...regularListings]
+    .filter((l: any) => l.thumbnail)
+    .slice(0, 5);
+---
+
+<Base 
+    title="Best Erotic Massage in Hanoi | Ultimate 2026 Guide"
+    description="Discover the sensual world of erotic massage in Hanoi. Explore 0 verified venues blending Vietnamese sensuality with Old Quarter charm. Book your exotic escape today for ultimate relaxation!"
+    canonical={canonicalUrl}
+    image={heroListings.length > 0 ? heroListings[0].thumbnail : 'https://erotikmaps.com/images/og-default.jpg'}
+>
+    <!-- Compact Hero Section -->
+    <section class="hero-compact">
+        <div class="container">
+            <h1>Unveil Sensual Secrets: Premier Erotic Massage in Hanoi</h1>
+            <p class="hero-subtitle">{listings.length} verified venues in Hanoi</p>
+            <div class="hero-badges">
+                {goldListings.length > 0 && <span class="badge-stat gold">⭐ {goldListings.length} Gold</span>}
+                {premiumListings.length > 0 && <span class="badge-stat premium">✨ {premiumListings.length} Premium</span>}
+            </div>
+        </div>
+    </section>
+    
+    <!-- Listings Grid - Mobile First -->
+    <section class="listings" id="all-listings">
+        <div class="container">
+            <div class="listings-grid-3">
+                {listings.map((listing: any) => (
+                    <ListingCard listing={listing} />
+                ))}
+            </div>
+            
+            {listings.length === 0 && (
+                <p class="no-listings">No listings found. Check back soon!</p>
+            )}
+        </div>
+    </section>
+    
+    <!-- About Section -->
+    <section class="about-section" id="about">
+        <div class="container">
+            <h2>About Erotic massage in Hanoi</h2>
+            <div class="about-content" set:html={introHtml} />
+        </div>
+    </section>
+    
+    <!-- Category Navigation -->
+    <CategoryNav city="Hanoi" />
+    
+    <!-- Network Links - Links to other satellite sites -->
+    <NetworkLinks currentCity="Hanoi" currentCountry="Vietnam" category="erotic-massage" />
+    
+    <!-- Internal Links Section -->
+    <InternalLinks city="Hanoi" country="Vietnam" category="Erotic massage" />
+    
+    <!-- Owner CTA Section - Encourage venue owners to create listings -->
+    <OwnerCTA city="Hanoi" country="Vietnam" category="Erotic massage" />
+    
+    <!-- FAQ Section -->
+    {faq && faq.length > 0 && (
+        <section class="faq" id="faq">
+            <div class="container">
+                <h2>Frequently Asked Questions about Erotic massage in Hanoi</h2>
+                <div class="faq-list">
+                    {faq.map((item: any, index: number) => (
+                        <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                            <h3 itemprop="name">{item.question}</h3>
+                            <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                                <div itemprop="text" set:html={item.answer} />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </section>
+    )}
+    
+    <!-- Bottom Section / Call to Action -->
+    <section class="bottom-content">
+        <div class="container">
+            <h2>Find Your Perfect Erotic massage Experience in Hanoi</h2>
+            <div class="bottom-content-text" set:html={bottomHtml} />
+            
+            <div class="cta-box">
+                <h3>Looking for something specific?</h3>
+                <p>Browse through our {listings.length} listings above, or click on any venue to see full details, photos, and contact information.</p>
+                <a href="#all-listings" class="btn-primary">Browse All Listings</a>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Individual Listing Links for SEO -->
+    <section class="sitemap-links">
+        <div class="container">
+            <h2>All Erotic massage Venues</h2>
+            <ul class="venue-links">
+                {listings.map((listing: any) => (
+                    <li><a href={`/${listing.slug}`}>{listing.name} - Hanoi</a></li>
+                ))}
+            </ul>
+        </div>
+    </section>
+    
+    <!-- Schema.org - ItemList -->
+    <script type="application/ld+json" set:html={JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "name": "Best Erotic Massage in Hanoi | Ultimate 2026 Guide",
+        "description": "Discover the sensual world of erotic massage in Hanoi. Explore 0 verified venues blending Vietnamese sensuality with Old Quarter charm. Book your exotic escape today for ultimate relaxation!",
+        "url": canonicalUrl,
+        "numberOfItems": listings.length,
+        "itemListElement": listings.map((listing: any, index: number) => ({
+            "@type": "ListItem",
+            "position": index + 1,
+            "item": {
+                "@type": "LocalBusiness",
+                "name": listing.name,
+                "url": `https://hanoieroticmassage.com/${listing.slug}`,
+                "image": listing.thumbnail,
+                "address": {
+                    "@type": "PostalAddress",
+                    "addressLocality": "Hanoi",
+                    "addressCountry": "Vietnam"
+                }
+            }
+        }))
+    })}></script>
+    
+    <!-- Schema.org - FAQPage -->
+    {faq && faq.length > 0 && (
+        <script type="application/ld+json" set:html={JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": faq.map((item: any) => ({
+                "@type": "Question",
+                "name": item.question,
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": item.answer
+                }
+            }))
+        })}></script>
+    )}
+    
+    <!-- Schema.org - WebPage -->
+    <script type="application/ld+json" set:html={JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Best Erotic Massage in Hanoi | Ultimate 2026 Guide",
+        "description": "Discover the sensual world of erotic massage in Hanoi. Explore 0 verified venues blending Vietnamese sensuality with Old Quarter charm. Book your exotic escape today for ultimate relaxation!",
+        "url": canonicalUrl,
+        "isPartOf": {
+            "@type": "WebSite",
+            "name": "Hanoi Erotic Massage ❤️",
+            "url": "https://hanoieroticmassage.com"
+        },
+        "about": {
+            "@type": "Thing",
+            "name": "Erotic massage in Hanoi"
+        },
+        "breadcrumb": {
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Home",
+                    "item": "https://hanoieroticmassage.com"
+                }
+            ]
+        }
+    })}></script>
+</Base>
+
+<style>
+    /* Compact Hero */
+    .hero-compact {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        padding: 30px 0;
+        text-align: center;
+    }
+    .hero-compact h1 {
+        font-size: clamp(1.4rem, 4vw, 2rem);
+        margin-bottom: 8px;
+        font-weight: 700;
+    }
+    .hero-compact .hero-subtitle {
+        font-size: 0.95rem;
+        opacity: 0.9;
+        margin-bottom: 12px;
+    }
+    .hero-badges {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    .badge-stat {
+        background: rgba(255,255,255,0.2);
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    .badge-stat.gold { background: rgba(255,215,0,0.3); }
+    .badge-stat.premium { background: rgba(255,255,255,0.25); }
+    
+    /* Listings Grid - Mobile First (1 col mobile, 2 tablet, 3 desktop) */
+    .listings-grid-3 {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    @media (min-width: 540px) {
+        .listings-grid-3 { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (min-width: 900px) {
+        .listings-grid-3 { grid-template-columns: repeat(3, 1fr); }
+    }
+    
+    /* About Section */
+    .about-section {
+        background: var(--card-bg);
+        padding: 40px 0;
+    }
+    .about-section h2 {
+        font-size: 1.4rem;
+        margin-bottom: 16px;
+    }
+    .about-content {
+        color: var(--text-light);
+        line-height: 1.7;
+    }
+    .about-content p { margin-bottom: 12px; }
+    
+    /* Listings Section */
+    .listings {
+        padding: 24px 0;
+    }
+    
+    .section-intro {
+        color: var(--text-light);
+        margin-bottom: 25px;
+    }
+    .premium-section {
+        background: linear-gradient(135deg, #D4AF3710, #F4D03F10);
+    }
+    .cta-box {
+        background: linear-gradient(135deg, var(--primary)10, var(--secondary)10);
+        padding: 30px;
+        border-radius: 12px;
+        margin-top: 30px;
+        text-align: center;
+    }
+    .cta-box h3 {
+        margin-bottom: 10px;
+    }
+    .cta-box p {
+        margin-bottom: 20px;
+        color: var(--text-light);
+    }
+    .sitemap-links {
+        padding: 40px 0;
+        background: var(--bg);
+    }
+    .sitemap-links h2 {
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+    }
+    .venue-links {
+        column-count: 3;
+        column-gap: 30px;
+        list-style: none;
+        padding: 0;
+    }
+    .venue-links li {
+        margin-bottom: 8px;
+        break-inside: avoid;
+    }
+    .venue-links a {
+        font-size: 13px;
+        color: var(--text-light);
+    }
+    .venue-links a:hover {
+        color: var(--primary);
+    }
+    @media (max-width: 768px) {
+        .venue-links {
+            column-count: 1;
+        }
+    }
+</style>

@@ -1,6 +1,8 @@
 ---
 import Base from '../layouts/Base.astro';
 import ListingCard from '../components/ListingCard.astro';
+import GeoBanner from '../components/GeoBanner.astro';
+import NetworkLinks from '../components/NetworkLinks.astro';
 
 export async function getStaticPaths() {
     // Safe fetch helper defined inside getStaticPaths for Astro build context
@@ -31,11 +33,61 @@ export async function getStaticPaths() {
         }
     }
     
-    const apiUrl = 'https://www.erotikmaps.com/api/v1/satellite/listings?city=hanoi&category=erotic-massage&limit=100';
-    const listings = await safeFetch(apiUrl);
+    // Fetch city listings first (main category)
+    const cityApiUrl = 'https://www.erotikmaps.com/api/v1/satellite/listings?city=hanoi&category=erotic-massage&limit=100';
+    let listings = await safeFetch(cityApiUrl);
+    
+    // Country fallback - MUST match homepage logic exactly (Gold + premium + 20 others sorted by ID)
+    if (listings.length === 0) {
+        console.log('[getStaticPaths] No city listings, trying country fallback...');
+        const countryApiUrl = 'https://www.erotikmaps.com/api/v1/satellite/listings?country=vietnam&category=erotic-massage&limit=200';
+        const allCountryListings = await safeFetch(countryApiUrl);
+        
+        if (allCountryListings.length > 0) {
+            const goldOnes = allCountryListings.filter((l: any) => l.is_gold);
+            const premiumOnes = allCountryListings.filter((l: any) => l.is_premium && !l.is_gold);
+            const others = allCountryListings.filter((l: any) => !l.is_premium && !l.is_gold);
+            const selected = others.sort((a: any, b: any) => (a.id || 0) - (b.id || 0)).slice(0, 20);
+            listings = [...goldOnes, ...premiumOnes, ...selected];
+            console.log('[getStaticPaths] Country fallback: ' + listings.length + ' listings (gold: ' + goldOnes.length + ', premium: ' + premiumOnes.length + ')');
+        }
+    }
+    
+    // Also fetch cross-category listings (matching homepage related categories)
+    // This ensures pages exist for gentlemen's club / swinger club listings shown on the homepage
+    const relatedCats: Record<string, string[]> = {
+        'erotic-massage': ['gentlemens-club', 'swinger-club'],
+        'gentlemens-club': ['erotic-massage', 'swinger-club'],
+        'swinger-club': ['erotic-massage', 'gentlemens-club']
+    };
+    const currentRelated = relatedCats['erotic-massage'] || [];
+    
+    for (const relCat of currentRelated) {
+        // Try city first, then country fallback
+        let relUrl = 'https://www.erotikmaps.com/api/v1/satellite/listings?city=hanoi&category=' + relCat + '&limit=6';
+        let relData = await safeFetch(relUrl);
+        
+        if (relData.length === 0) {
+            relUrl = 'https://www.erotikmaps.com/api/v1/satellite/listings?country=vietnam&category=' + relCat + '&limit=6';
+            relData = await safeFetch(relUrl);
+        }
+        
+        if (relData.length > 0) {
+            listings = [...listings, ...relData.slice(0, 6)];
+            console.log('[getStaticPaths] Added ' + Math.min(relData.length, 6) + ' cross-category listings for ' + relCat);
+        }
+    }
+    
+    // Deduplicate by slug (in case a listing appears in multiple categories)
+    const seen = new Set<string>();
+    listings = listings.filter((l: any) => {
+        if (!l || !l.slug || seen.has(l.slug)) return false;
+        seen.add(l.slug);
+        return true;
+    });
     
     if (listings.length === 0) {
-        console.warn('[getStaticPaths] No listings found, returning empty paths');
+        console.warn('[getStaticPaths] No listings found in city or country, returning empty paths');
         return [];
     }
     
@@ -93,11 +145,11 @@ const nextListing = position < total ? allListings[position] : null;
 // Generate meta description with unique content
 const metaDesc = fullListing.description 
     ? fullListing.description.replace(/<[^>]*>/g, '').substring(0, 155) + '...'
-    : `Discover ${listing.name}, one of the top Erotic massage venues in Hanoi. Contact info, photos, services & reviews.`;
+    : `Discover ${listing.name}, one of the top Erotic Massage venues in Hanoi. Contact info, photos, services & reviews.`;
 ---
 
 <Base 
-    title={`${listing.name} - Erotic massage in Hanoi | Hanoi Erotic massage`}
+    title={`${listing.name} - Erotic Massage in Hanoi | Hanoi Erotic massage`}
     description={metaDesc}
     canonical={canonicalUrl}
     image={listing.thumbnail}
@@ -113,7 +165,7 @@ const metaDesc = fullListing.description
                 </span>
                 &rsaquo;
                 <span itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-                    <a href="/#all-listings" itemprop="item"><span itemprop="name">Erotic massage</span></a>
+                    <a href="/#all-listings" itemprop="item"><span itemprop="name">Erotic Massage</span></a>
                     <meta itemprop="position" content="2" />
                 </span>
                 &rsaquo;
@@ -123,27 +175,117 @@ const metaDesc = fullListing.description
                 </span>
             </nav>
             
-            <!-- Header - Clean compact design -->
-            <header class="listing-header">
-                <div class="listing-hero-wrapper">
+            <!-- Hero Banner - Full width modern design -->
+            <header class="listing-hero-banner">
+                <div class="hero-image-container">
                     <img 
                         src={listing.thumbnail} 
-                        alt={`${listing.name} - Erotic massage in Hanoi`}
-                        class="listing-hero-image"
+                        alt={`${listing.name} - Professional Erotic Massage venue in Hanoi, Vietnam. ${listing.is_gold ? 'Gold verified establishment.' : listing.is_premium ? 'Premium verified venue.' : 'Quality adult wellness services.'}`}
+                        class="hero-bg-image"
                         loading="eager"
                         itemprop="image"
                     />
+                    <div class="hero-overlay"></div>
                 </div>
-                <div class="listing-header-content">
+                <div class="hero-content">
+                    <div class="hero-badges">
+                        {listing.is_gold && <span class="hero-badge gold"><span class="badge-icon">🏆</span> Gold Verified</span>}
+                        {listing.is_premium && !listing.is_gold && <span class="hero-badge premium"><span class="badge-icon">⭐</span> Premium</span>}
+                    </div>
                     <h1 itemprop="name">{listing.name}</h1>
-                    <p class="location" itemprop="address" itemscope itemtype="https://schema.org/PostalAddress">
-                        📍 <span itemprop="addressLocality">{listing.city}</span>, 
+                    <p class="hero-location" itemprop="address" itemscope itemtype="https://schema.org/PostalAddress">
+                        <span class="location-icon">📍</span>
+                        <span itemprop="addressLocality">{listing.city}</span>, 
                         <span itemprop="addressCountry">{listing.country}</span>
                     </p>
-                    {listing.is_premium && <span class="badge premium">⭐ Premium</span>}
-                    <p class="listing-position">Listing {position} of {total} in Hanoi</p>
                 </div>
             </header>
+            
+            <!-- GeoBanner - Top position for non-Gold/Silver -->
+            {!listing.is_gold && !listing.is_premium && (
+                <div class="listing-banner-slot top-banner">
+                    <GeoBanner />
+                </div>
+            )}
+            
+            <!-- QUICK CONTACT SECTION - Very prominent, mobile-first -->
+            <section class="quick-contact-section">
+                <h2 class="quick-contact-title">📞 Contact {listing.name}</h2>
+                
+                <div class="quick-contact-grid">
+                    <!-- Website Button - Green -->
+                    {fullListing.website && (
+                        <a 
+                            href={fullListing.website} 
+                            target="_blank" 
+                            rel={(listing.is_gold || listing.is_premium) ? "noopener" : "nofollow noopener"}
+                            class="quick-btn website-main"
+                        >
+                            <span class="btn-label">🌐 Website</span>
+                        </a>
+                    )}
+                    
+                    <!-- WhatsApp Button - Green -->
+                    {fullListing.whatsapp && (
+                        <a 
+                            href={`https://wa.me/${fullListing.whatsapp.replace(/[^0-9]/g, '')}?text=Hi! I found you on Hanoi Erotic massage and I'm interested in your services.`}
+                            target="_blank"
+                            rel="noopener"
+                            class="quick-btn whatsapp-main"
+                        >
+                            <span class="btn-icon">💬</span>
+                            <span class="btn-content">
+                                <span class="btn-label">WhatsApp</span>
+                                <span class="btn-number">{fullListing.whatsapp}</span>
+                            </span>
+                        </a>
+                    )}
+                    
+                    <!-- Phone Button - Outlined -->
+                    {fullListing.phone && (
+                        <div class="contact-info-box phone-box">
+                            <span class="info-label">📞 Phone Number</span>
+                            <span class="info-value" itemprop="telephone">{fullListing.phone}</span>
+                            <a href={`tel:${fullListing.phone}`} class="quick-btn call-btn">
+                                📞 Call Us
+                            </a>
+                        </div>
+                    )}
+                    
+                    <!-- Email -->
+                    {fullListing.email && (
+                        <div class="contact-info-box email-box">
+                            <span class="info-label">✉️ Email Address</span>
+                            <span class="info-value" itemprop="email">{fullListing.email}</span>
+                            <a href={`mailto:${fullListing.email}`} class="quick-btn email-btn-action">
+                                ✉️ Email
+                            </a>
+                        </div>
+                    )}
+                    
+                    <!-- Address / Get Directions -->
+                    {fullListing.address && (
+                        <div class="contact-info-box address-box">
+                            <span class="info-label">📍 Get Directions</span>
+                            <span class="info-value" itemprop="streetAddress">{fullListing.address}</span>
+                            <a 
+                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullListing.address + ', ' + listing.city + ', ' + listing.country)}`}
+                                target="_blank"
+                                rel="noopener"
+                                class="quick-btn directions-btn"
+                            >
+                                📍 Get Directions
+                            </a>
+                        </div>
+                    )}
+                </div>
+                
+                <!-- CTA Banner -->
+                <div class="contact-cta-banner">
+                    <span>👑 Claim this listing & edit all details</span>
+                    <a href="https://gopremium.app/create-listing" rel="nofollow" class="claim-btn">Claim Listing</a>
+                </div>
+            </section>
             
             <!-- Prev/Next Navigation -->
             <nav class="listing-nav">
@@ -186,15 +328,15 @@ const metaDesc = fullListing.description
                     <!-- Gallery - Organized Grid -->
                     {fullListing.gallery && fullListing.gallery.length > 0 && (
                         <section class="section gallery-section">
-                            <h2>📸 Photo & Video Gallery</h2>
+                            <h2><span class="heading-icon" aria-hidden="true">📸</span> Photo & Video Gallery</h2>
                             <p class="gallery-intro">{fullListing.gallery.length} media items from {listing.name}</p>
-                            <div class="gallery-grid">
+                            <div class="gallery-grid" id="gallery-grid">
                                 {fullListing.gallery.slice(0, 12).map((item: any, idx: number) => (
-                                    <div class={`gallery-item ${idx === 0 ? 'featured' : ''}`} key={idx}>
+                                    <div class={`gallery-item ${idx === 0 ? 'featured' : ''}`} key={idx} onclick={`openLightbox(${idx})`}>
                                         {item.type === 'image' ? (
                                             <img 
                                                 src={item.url} 
-                                                alt={`${listing.name} - Photo ${idx + 1}`}
+                                                alt={`${listing.name} - Erotic Massage in Hanoi, Vietnam - Photo ${idx + 1}`}
                                                 loading="lazy"
                                                 class="gallery-media"
                                             />
@@ -202,9 +344,7 @@ const metaDesc = fullListing.description
                                             <div class="video-wrapper">
                                                 <video 
                                                     src={item.url} 
-                                                    controls 
                                                     preload="metadata"
-                                                    poster={listing.thumbnail}
                                                     class="gallery-media"
                                                 ></video>
                                                 <span class="video-badge">▶ Video</span>
@@ -216,25 +356,131 @@ const metaDesc = fullListing.description
                             {fullListing.gallery.length > 12 && (
                                 <p class="gallery-more">+ {fullListing.gallery.length - 12} more photos available</p>
                             )}
+                            
+                            <!-- Lightbox -->
+                            <div id="lightbox" class="lightbox">
+                                <span class="close-btn" onclick="closeLightbox()">&times;</span>
+                                <img id="lightbox-img" class="lightbox-content" src="" />
+                                <video id="lightbox-video" class="lightbox-content" controls style="display:none;"></video>
+                                <a class="prev" onclick="changeSlide(-1)">&#10094;</a>
+                                <a class="next" onclick="changeSlide(1)">&#10095;</a>
+                            </div>
+
+                            <script define:vars={{ gallery: fullListing.gallery }}>
+                                let currentIndex = 0;
+                                const lightbox = document.getElementById('lightbox');
+                                const lightboxImg = document.getElementById('lightbox-img');
+                                const lightboxVideo = document.getElementById('lightbox-video');
+                                
+                                window.openLightbox = function(index) {
+                                    currentIndex = index;
+                                    lightbox.style.display = "block";
+                                    showSlide(currentIndex);
+                                    document.body.style.overflow = 'hidden';
+                                }
+                                
+                                window.closeLightbox = function() {
+                                    lightbox.style.display = "none";
+                                    lightboxVideo.pause();
+                                    document.body.style.overflow = 'auto';
+                                }
+                                
+                                window.changeSlide = function(n) {
+                                    currentIndex += n;
+                                    if (currentIndex >= gallery.length) currentIndex = 0;
+                                    if (currentIndex < 0) currentIndex = gallery.length - 1;
+                                    showSlide(currentIndex);
+                                }
+                                
+                                function showSlide(index) {
+                                    const item = gallery[index];
+                                    if (item.type === 'image') {
+                                        lightboxImg.style.display = 'block';
+                                        lightboxVideo.style.display = 'none';
+                                        lightboxImg.src = item.url;
+                                        lightboxVideo.pause();
+                                    } else {
+                                        lightboxImg.style.display = 'none';
+                                        lightboxVideo.style.display = 'block';
+                                        lightboxVideo.src = item.url;
+                                    }
+                                }
+                                
+                                // Close on outside click
+                                lightbox.addEventListener('click', function(e) {
+                                    if (e.target === lightbox) {
+                                        closeLightbox();
+                                    }
+                                });
+                                
+                                // Keyboard navigation
+                                document.addEventListener('keydown', function(e) {
+                                    if (lightbox.style.display === "block") {
+                                        if (e.key === "Escape") closeLightbox();
+                                        if (e.key === "ArrowLeft") changeSlide(-1);
+                                        if (e.key === "ArrowRight") changeSlide(1);
+                                    }
+                                });
+                            </script>
                         </section>
                     )}
                     
-                    <!-- Why Choose Section - Unique content -->
+                    <!-- GeoBanner for non-Gold/Silver listings - After Gallery -->
+                    {!listing.is_gold && !listing.is_premium && (
+                        <div class="listing-banner-slot">
+                            <GeoBanner />
+                        </div>
+                    )}
+                    
+                    <!-- Why Choose Section - Unique SEO content -->
                     <section class="section why-choose">
                         <h2>Why Choose {listing.name}?</h2>
                         <p>
-                            Looking for quality Erotic massage services in Hanoi? 
+                            Looking for quality Erotic Massage services in Hanoi? 
                             {listing.name} is one of the {total} verified establishments we feature in the Hanoi area.
                             {listing.is_premium ? " As a premium listing, this venue has been verified for quality and reliability." : ""}
+                            {listing.is_gold ? " This Gold-rated venue is among the highest-rated in Hanoi." : ""}
                         </p>
                         <ul>
-                            <li>✓ Verified Erotic massage establishment</li>
+                            <li>✓ Verified Erotic Massage establishment</li>
                             <li>✓ Located in Hanoi, Vietnam</li>
                             <li>✓ Direct contact information available</li>
                             {fullListing.gallery && fullListing.gallery.length > 0 && (
                                 <li>✓ {fullListing.gallery.length} photos & videos available</li>
                             )}
+                            {fullListing.services && fullListing.services.length > 0 && (
+                                <li>✓ {fullListing.services.length} services offered</li>
+                            )}
                         </ul>
+                    </section>
+                    
+                    <!-- Unique Local SEO Content -->
+                    <section class="section local-seo-content">
+                        <h2>Erotic Massage Experience in Hanoi</h2>
+                        <p>
+                            {listing.name} offers authentic Erotic Massage experiences in the heart of Hanoi, Vietnam. 
+                            Whether you're a local resident or visiting Hanoi for business or leisure, 
+                            this venue provides professional services in a comfortable, discreet environment.
+                        </p>
+                        <p>
+                            As listing #{position} of {total} in our Hanoi directory, {listing.name} has been 
+                            {listing.is_gold ? "awarded our Gold verification for exceptional service quality" : 
+                             listing.is_premium ? "verified as a Premium establishment" : 
+                             "verified and added to our curated selection of Erotic Massage venues"}.
+                        </p>
+                        <h3>What to Expect</h3>
+                        <p>
+                            When visiting {listing.name}, you can expect professional Erotic Massage services 
+                            tailored to your preferences. The venue is committed to providing a relaxing and 
+                            satisfying experience for all clients. Contact them directly using the information 
+                            provided to inquire about availability, pricing, and specific services.
+                        </p>
+                        <h3>Location & Accessibility</h3>
+                        <p>
+                            Conveniently located in Hanoi, {listing.name} is accessible to visitors 
+                            from all areas of the city. For the exact address and directions, please contact 
+                            the venue directly or use the location information provided above.
+                        </p>
                     </section>
                 </div>
                 
@@ -242,21 +488,19 @@ const metaDesc = fullListing.description
                     <!-- Contact Card - Prominently displayed -->
                     <div class="contact-card-premium">
                         <div class="contact-header">
-                            <h3>📞 Contact {listing.name}</h3>
+                            <h3><span class="heading-icon" aria-hidden="true">📞</span> Contact {listing.name}</h3>
                             <p class="contact-subtitle">Get in touch directly</p>
                         </div>
                         
                         <!-- WhatsApp CTA - Most prominent -->
                         {fullListing.whatsapp && (
                             <a 
-                                href={`https://wa.me/${fullListing.whatsapp.replace(/[^0-9]/g, '')}?text=Hi! I found you on the Erotic massage directory and I'm interested in your services.`}
+                                href={`https://wa.me/${fullListing.whatsapp.replace(/[^0-9]/g, '')}?text=Hi! I found you on the Erotic Massage directory and I'm interested in your services.`}
                                 class="whatsapp-cta"
                                 target="_blank"
                                 rel="noopener"
                             >
-                                <svg viewBox="0 0 24 24" fill="currentColor" class="wa-icon">
-                                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                                </svg>
+                                <span class="wa-icon">💬</span>
                                 <span class="wa-text">
                                     <strong>Chat on WhatsApp</strong>
                                     <small>Tap to message instantly</small>
@@ -280,11 +524,18 @@ const metaDesc = fullListing.description
                             </a>
                         )}
                         
-                        <!-- Website -->
+                        <!-- Website - nofollow unless Gold/Premium -->
                         {fullListing.website && (
-                            <a href={fullListing.website} target="_blank" rel="noopener" class="contact-btn website-btn" itemprop="url">
+                            <a 
+                                href={fullListing.website} 
+                                target="_blank" 
+                                rel={(listing.is_gold || listing.is_premium) ? "noopener" : "nofollow noopener"}
+                                class="contact-btn website-btn" 
+                                itemprop="url"
+                            >
                                 <span class="contact-icon">🌐</span>
                                 <span>Visit Website</span>
+                                {(listing.is_gold || listing.is_premium) && <span class="dofollow-badge">✓ Verified</span>}
                             </a>
                         )}
                         
@@ -300,7 +551,7 @@ const metaDesc = fullListing.description
                     
                     <!-- View on ErotikMaps -->
                     <div class="view-original">
-                        <a href={listing.url} target="_blank" rel="dofollow" class="btn-erotikmaps">
+                        <a href={listing.url} target="_blank" class="btn-erotikmaps">
                             View Full Profile on ErotikMaps →
                         </a>
                     </div>
@@ -309,7 +560,7 @@ const metaDesc = fullListing.description
                     <div class="quick-links">
                         <h4>Quick Links</h4>
                         <ul>
-                            <li><a href="/">← All Erotic massage in Hanoi</a></li>
+                            <li><a href="/">← All Erotic Massage in Hanoi</a></li>
                             <li><a href="/#faq">Frequently Asked Questions</a></li>
                             <li><a href="/#premium">Premium Listings</a></li>
                         </ul>
@@ -317,10 +568,17 @@ const metaDesc = fullListing.description
                 </aside>
             </div>
             
+            <!-- GeoBanner for non-Gold/Silver listings - Before Similar Listings -->
+            {!listing.is_gold && !listing.is_premium && (
+                <div class="listing-banner-slot bottom-banner">
+                    <GeoBanner />
+                </div>
+            )}
+            
             <!-- Similar Listings -->
             {similarListings.length > 0 && (
                 <section class="similar-listings">
-                    <h2>Similar Erotic massage in Hanoi</h2>
+                    <h2>Similar Erotic Massage in Hanoi</h2>
                     <p>Discover other venues that might interest you:</p>
                     <div class="listings-grid small">
                         {similarListings.map((l: any) => (
@@ -332,36 +590,310 @@ const metaDesc = fullListing.description
                     </p>
                 </section>
             )}
+            
+            <!-- FAQ Section - Visible for SEO -->
+            <section class="listing-faq" id="listing-faq" itemscope itemtype="https://schema.org/FAQPage">
+                <h2><span class="heading-icon" aria-hidden="true">❓</span> Frequently Asked Questions about {listing.name}</h2>
+                
+                <div class="faq-accordion">
+                    <details class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                        <summary itemprop="name">
+                            What services does {listing.name} offer?
+                        </summary>
+                        <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                            <div itemprop="text">
+                                {fullListing.services && fullListing.services.length > 0 ? (
+                                    <p>
+                                        {listing.name} offers the following Erotic Massage services: 
+                                        <strong>{fullListing.services.join(', ')}</strong>. 
+                                        Located in Hanoi, Vietnam, this venue provides professional adult wellness and relaxation experiences.
+                                    </p>
+                                ) : (
+                                    <p>
+                                        {listing.name} provides professional Erotic Massage services in Hanoi, Vietnam. 
+                                        Contact them directly for a full list of available services and treatments.
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    </details>
+                    
+                    <details class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                        <summary itemprop="name">
+                            How can I contact {listing.name}?
+                        </summary>
+                        <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                            <div itemprop="text">
+                                <p>You can contact {listing.name} through the following methods:</p>
+                                <ul>
+                                    {fullListing.whatsapp && <li>💬 <strong>WhatsApp:</strong> {fullListing.whatsapp}</li>}
+                                    {fullListing.phone && <li>📞 <strong>Phone:</strong> {fullListing.phone}</li>}
+                                    {fullListing.email && <li>✉️ <strong>Email:</strong> {fullListing.email}</li>}
+                                    {fullListing.website && <li>🌐 <strong>Website:</strong> <a href={fullListing.website} target="_blank" rel="noopener">{fullListing.website}</a></li>}
+                                </ul>
+                            </div>
+                        </div>
+                    </details>
+                    
+                    <details class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                        <summary itemprop="name">
+                            Where is {listing.name} located?
+                        </summary>
+                        <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                            <div itemprop="text">
+                                {fullListing.address ? (
+                                    <p>
+                                        📍 {listing.name} is located at <strong>{fullListing.address}</strong>, Hanoi, Vietnam. 
+                                        You can <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullListing.address + ', Hanoi, Vietnam')}`} target="_blank" rel="noopener">get directions on Google Maps</a>.
+                                    </p>
+                                ) : (
+                                    <p>
+                                        📍 {listing.name} is located in Hanoi, Vietnam. 
+                                        Contact them directly for the exact address and directions.
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    </details>
+                    
+                    <details class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                        <summary itemprop="name">
+                            Is {listing.name} a verified venue?
+                        </summary>
+                        <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                            <div itemprop="text">
+                                {listing.is_gold ? (
+                                    <p>
+                                        ✅ <strong>Yes!</strong> {listing.name} is a <span class="badge gold">🏆 Gold Verified</span> venue on our directory. 
+                                        Gold venues have been verified for quality, reliability, and excellent service. 
+                                        This is one of the top-rated Erotic Massage venues in Hanoi.
+                                    </p>
+                                ) : listing.is_premium ? (
+                                    <p>
+                                        ✅ <strong>Yes!</strong> {listing.name} is a <span class="badge premium">⭐ Premium Verified</span> venue. 
+                                        Premium venues have been reviewed and meet our quality standards for Erotic Massage services in Hanoi.
+                                    </p>
+                                ) : (
+                                    <p>
+                                        {listing.name} is listed in our Erotic Massage directory for Hanoi. 
+                                        We recommend contacting them directly to verify services and availability.
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    </details>
+                    
+                    <details class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                        <summary itemprop="name">
+                            What are the opening hours of {listing.name}?
+                        </summary>
+                        <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                            <div itemprop="text">
+                                {fullListing.opening_hours ? (
+                                    <p>
+                                        🕐 {listing.name} is typically open according to their schedule. 
+                                        For the most accurate opening hours, please contact them directly via WhatsApp or phone, 
+                                        as hours may vary on holidays or special occasions.
+                                    </p>
+                                ) : (
+                                    <p>
+                                        🕐 For current opening hours at {listing.name}, please contact them directly. 
+                                        Many Erotic Massage venues in Hanoi operate from late morning until late evening.
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    </details>
+                </div>
+                
+                <p class="faq-more">
+                    Have more questions? <a href="/#faq">See our general FAQ</a> or contact {listing.name} directly.
+                </p>
+            </section>
         </div>
     </article>
     
-    <!-- Schema.org LocalBusiness -->
+    <!-- Schema.org LocalBusiness - ENRICHED -->
     <script type="application/ld+json" set:html={JSON.stringify({
         "@context": "https://schema.org",
-        "@type": "LocalBusiness",
+        "@type": ["LocalBusiness", "HealthAndBeautyBusiness"],
+        "@id": canonicalUrl,
         "name": listing.name,
-        "image": listing.thumbnail,
+        "description": fullListing.description ? fullListing.description.replace(/<[^>]*>/g, '').substring(0, 300) : `Professional Erotic Massage venue located in Hanoi, Vietnam. Offering premium adult wellness and relaxation services.`,
         "url": canonicalUrl,
+        "image": fullListing.gallery && fullListing.gallery.length > 0 
+            ? [listing.thumbnail, ...fullListing.gallery.slice(0, 5).map((g: any) => g.url)]
+            : [listing.thumbnail],
+        "logo": listing.thumbnail,
+        "telephone": fullListing.phone || undefined,
+        "email": fullListing.email || undefined,
         "address": {
             "@type": "PostalAddress",
+            "streetAddress": fullListing.address || undefined,
             "addressLocality": "Hanoi",
+            "addressRegion": "Vietnam",
             "addressCountry": "Vietnam"
         },
-        ...(fullListing.phone && { "telephone": fullListing.phone }),
-        ...(fullListing.email && { "email": fullListing.email }),
-        "priceRange": "$$"
+        "geo": (fullListing.latitude && fullListing.longitude) ? {
+            "@type": "GeoCoordinates",
+            "latitude": fullListing.latitude,
+            "longitude": fullListing.longitude
+        } : undefined,
+        "hasMap": fullListing.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullListing.address + ', Hanoi, Vietnam')}` : undefined,
+        "priceRange": fullListing.price_range || "$$",
+        "paymentAccepted": ["Cash", "Credit Card"],
+        "currenciesAccepted": "EUR, USD, GBP",
+        "areaServed": {
+            "@type": "City",
+            "name": "Hanoi",
+            "containedInPlace": {
+                "@type": "Country",
+                "name": "Vietnam"
+            }
+        },
+        "aggregateRating": (fullListing.rating && fullListing.rating > 0) ? {
+            "@type": "AggregateRating",
+            "ratingValue": fullListing.rating,
+            "reviewCount": fullListing.review_count || 1,
+            "bestRating": 5,
+            "worstRating": 1
+        } : undefined,
+        "hasOfferCatalog": (fullListing.services && fullListing.services.length > 0) ? {
+            "@type": "OfferCatalog",
+            "name": "Erotic Massage Services",
+            "itemListElement": fullListing.services.map((service: string, idx: number) => ({
+                "@type": "Offer",
+                "itemOffered": {
+                    "@type": "Service",
+                    "name": service,
+                    "description": `Professional ${service} service at ${listing.name} in Hanoi`
+                }
+            }))
+        } : undefined,
+        "openingHoursSpecification": fullListing.opening_hours ? [{
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+            "opens": "10:00",
+            "closes": "23:00"
+        }] : undefined,
+        "isAccessibleForFree": false,
+        "sameAs": [
+            fullListing.website,
+            fullListing.instagram,
+            fullListing.facebook
+        ].filter(Boolean),
+        "potentialAction": [
+            fullListing.phone ? {
+                "@type": "ReserveAction",
+                "target": {
+                    "@type": "EntryPoint",
+                    "urlTemplate": `tel:${fullListing.phone}`,
+                    "actionPlatform": ["http://schema.org/IOSPlatform", "http://schema.org/AndroidPlatform"]
+                },
+                "result": {
+                    "@type": "Reservation",
+                    "name": "Book Appointment"
+                }
+            } : undefined,
+            fullListing.whatsapp ? {
+                "@type": "CommunicateAction",
+                "target": {
+                    "@type": "EntryPoint",
+                    "urlTemplate": `https://wa.me/${fullListing.whatsapp.replace(/[^0-9]/g, '')}`,
+                    "actionPlatform": ["http://schema.org/IOSPlatform", "http://schema.org/AndroidPlatform", "http://schema.org/DesktopWebPlatform"]
+                },
+                "description": "Contact via WhatsApp"
+            } : undefined
+        ].filter(Boolean),
+        "knowsAbout": ["Erotic Massage", "Adult Wellness", "Relaxation Services", "Professional Massage", "Hanoi Massage"],
+        "slogan": listing.is_gold 
+            ? "Gold Verified Premium Venue" 
+            : listing.is_premium 
+                ? "Premium Verified Venue" 
+                : "Quality Erotic Massage Services"
     })}></script>
     
-    <!-- Schema.org WebPage -->
+    <!-- Schema.org FAQPage - Dynamic FAQ for this listing -->
+    <script type="application/ld+json" set:html={JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": `What services does ${listing.name} offer in Hanoi?`,
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": fullListing.services && fullListing.services.length > 0
+                        ? `${listing.name} offers the following Erotic Massage services: ${fullListing.services.join(', ')}. Located in Hanoi, Vietnam, this venue provides professional adult wellness and relaxation experiences.`
+                        : `${listing.name} provides professional Erotic Massage services in Hanoi, Vietnam. Contact them directly for a full list of available services and treatments.`
+                }
+            },
+            {
+                "@type": "Question",
+                "name": `How can I contact ${listing.name}?`,
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": [
+                        fullListing.whatsapp ? `WhatsApp: ${fullListing.whatsapp}` : null,
+                        fullListing.phone ? `Phone: ${fullListing.phone}` : null,
+                        fullListing.email ? `Email: ${fullListing.email}` : null,
+                        fullListing.website ? `Website: ${fullListing.website}` : null
+                    ].filter(Boolean).join('. ') || `Visit our listing page for the latest contact information for ${listing.name} in Hanoi.`
+                }
+            },
+            {
+                "@type": "Question",
+                "name": `Where is ${listing.name} located?`,
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": fullListing.address 
+                        ? `${listing.name} is located at ${fullListing.address}, Hanoi, Vietnam. You can get directions using Google Maps or contact them directly for more details.`
+                        : `${listing.name} is located in Hanoi, Vietnam. Contact them directly for the exact address and directions.`
+                }
+            },
+            {
+                "@type": "Question",
+                "name": `Is ${listing.name} a verified venue?`,
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": listing.is_gold 
+                        ? `Yes, ${listing.name} is a Gold Verified venue on our directory. Gold venues have been verified for quality, reliability, and excellent service. This is one of the top-rated Erotic Massage venues in Hanoi.`
+                        : listing.is_premium
+                            ? `Yes, ${listing.name} is a Premium Verified venue. Premium venues have been reviewed and meet our quality standards for Erotic Massage services in Hanoi.`
+                            : `${listing.name} is listed in our Erotic Massage directory for Hanoi. We recommend contacting them directly to verify services and availability.`
+                }
+            },
+            {
+                "@type": "Question",
+                "name": `What are the prices at ${listing.name}?`,
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": fullListing.price_range 
+                        ? `Prices at ${listing.name} typically range from ${fullListing.price_range}. For exact pricing and available packages, we recommend contacting the venue directly.`
+                        : `For current pricing information at ${listing.name}, please contact them directly via phone or WhatsApp. Prices may vary based on services and duration.`
+                }
+            }
+        ]
+    })}></script>
+    
+    <!-- Schema.org WebPage with enhanced breadcrumbs -->
     <script type="application/ld+json" set:html={JSON.stringify({
         "@context": "https://schema.org",
         "@type": "WebPage",
-        "name": `${listing.name} - Erotic massage in Hanoi`,
+        "name": `${listing.name} - Erotic Massage in Hanoi`,
         "url": canonicalUrl,
+        "datePublished": fullListing.created_at || new Date().toISOString(),
+        "dateModified": fullListing.updated_at || new Date().toISOString(),
+        "description": fullListing.description ? fullListing.description.replace(/<[^>]*>/g, '').substring(0, 160) : `Discover ${listing.name}, professional Erotic Massage venue in Hanoi.`,
+        "inLanguage": "en",
         "isPartOf": {
             "@type": "WebSite",
             "name": "Hanoi Erotic massage",
             "url": "https://hanoieroticmassage.com"
+        },
+        "about": {
+            "@type": "LocalBusiness",
+            "@id": canonicalUrl
         },
         "breadcrumb": {
             "@type": "BreadcrumbList",
@@ -375,16 +907,32 @@ const metaDesc = fullListing.description
                 {
                     "@type": "ListItem",
                     "position": 2,
-                    "name": "Erotic massage",
-                    "item": "https://hanoieroticmassage.com/#all-listings"
+                    "name": "Vietnam",
+                    "item": "https://hanoieroticmassage.com/#country"
                 },
                 {
                     "@type": "ListItem",
                     "position": 3,
+                    "name": "Hanoi",
+                    "item": "https://hanoieroticmassage.com/"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 4,
+                    "name": "Erotic Massage",
+                    "item": "https://hanoieroticmassage.com/#all-listings"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 5,
                     "name": listing.name,
                     "item": canonicalUrl
                 }
             ]
+        },
+        "speakable": {
+            "@type": "SpeakableSpecification",
+            "cssSelector": [".listing-header h1", ".listing-header-content"]
         }
     })}></script>
     
@@ -393,23 +941,27 @@ const metaDesc = fullListing.description
         <div class="sticky-contact-bar">
             {fullListing.whatsapp && (
                 <a 
-                    href={`https://wa.me/${fullListing.whatsapp.replace(/[^0-9]/g, '')}?text=Hi! I found you on the Erotic massage directory.`}
+                    href={`https://wa.me/${fullListing.whatsapp.replace(/[^0-9]/g, '')}?text=Hi! I found you on the Erotic Massage directory.`}
                     class="sticky-btn whatsapp"
                     target="_blank"
                     rel="noopener"
                 >
-                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                    <span class="sticky-icon">💬</span>
                     <span>WhatsApp</span>
                 </a>
             )}
             {fullListing.phone && (
                 <a href={`tel:${fullListing.phone}`} class="sticky-btn call">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+                    <span class="sticky-icon">📞</span>
                     <span>Call</span>
                 </a>
             )}
         </div>
     )}
+    
+    <!-- Network Links - Cross-site SEO links to other satellite sites -->
+    <NetworkLinks currentCity="Hanoi" currentCountry="Vietnam" category="erotic-massage" />
+
 </Base>
 
 <style>
@@ -471,16 +1023,21 @@ const metaDesc = fullListing.description
         padding-bottom: 100px;
     }
     
+    /* Sticky icon always visible */
+    .sticky-icon {
+        font-size: 1.3rem;
+        line-height: 1;
+    }
+    
     @media (max-width: 500px) {
-        .sticky-btn span {
+        .sticky-btn span:not(.sticky-icon) {
             display: none;
         }
         .sticky-btn {
-            padding: 14px;
+            padding: 14px 20px;
         }
-        .sticky-btn svg {
-            width: 24px;
-            height: 24px;
+        .sticky-icon {
+            font-size: 1.5rem;
         }
     }
     
@@ -576,8 +1133,91 @@ const metaDesc = fullListing.description
         border-radius: 8px;
         font-weight: 600;
     }
-    .btn-secondary:hover {
-        background: var(--primary);
+    
+    /* GeoBanner slots for non-premium listings */
+    .listing-banner-slot {
+        margin: 16px 0;
+        text-align: center;
+    }
+    .listing-banner-slot.top-banner {
+        margin: 12px 0 16px 0;
+        padding: 0;
+        background: transparent;
+    }
+    .listing-banner-slot.bottom-banner {
+        margin: 24px auto;
+        max-width: 728px;
+    }
+    
+    <!-- Mobile Sticky Footer for Listings -->
+    {fullListing.whatsapp || fullListing.phone ? (
+        <div class="mobile-sticky-footer">
+            {fullListing.whatsapp && (
+                <a 
+                    href={`https://wa.me/${fullListing.whatsapp.replace(/[^0-9]/g, '')}?text=Hi! I found you on the Erotic Massage directory.`}
+                    class="sticky-btn sticky-whatsapp"
+                    target="_blank"
+                    rel="noopener"
+                >
+                    <span class="icon">💬</span> WhatsApp
+                </a>
+            )}
+            {fullListing.phone && (
+                <a href={`tel:${fullListing.phone}`} class="sticky-btn sticky-phone">
+                    <span class="icon">📞</span> Call
+                </a>
+            )}
+        </div>
+    ) : null}
+</Base>
+
+<style>
+    /* ... existing styles ... */
+    
+    /* Mobile Sticky Footer */
+    .mobile-sticky-footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: white;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+        padding: 12px;
+        display: none; /* Hidden by default */
+        z-index: 999;
+        gap: 12px;
+    }
+
+    .sticky-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
         color: white;
+        font-size: 1rem;
+    }
+
+    .sticky-whatsapp {
+        background: #25D366;
+    }
+
+    .sticky-phone {
+        background: var(--primary);
+    }
+
+    @media (max-width: 768px) {
+        .mobile-sticky-footer {
+            display: flex;
+        }
+        
+        /* Add padding to body so footer doesn't cover content */
+        body {
+            padding-bottom: 70px;
+        }
     }
 </style>

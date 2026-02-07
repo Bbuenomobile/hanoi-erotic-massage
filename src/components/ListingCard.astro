@@ -28,7 +28,7 @@ const shortDesc = listing.description ? listing.description.substring(0, 90) + '
         <div class="venue-image">
             <img 
                 src={listing.thumbnail} 
-                alt={listing.name+' - Erotic massage in Hanoi'}
+                alt={`${listing.name} - ${listing.is_gold ? 'Gold verified' : listing.is_premium ? 'Premium' : 'Quality'} Erotic Massage venue in Hanoi, Vietnam. Click to view details, photos and contact info.`}
                 loading={index < 4 ? 'eager' : 'lazy'}
                 decoding="async"
             />
@@ -39,40 +39,25 @@ const shortDesc = listing.description ? listing.description.substring(0, 90) + '
             <!-- Gold/Premium Ribbon -->
             {isGold && (
                 <div class="venue-ribbon gold-ribbon">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-                    </svg>
+                    <span class="ribbon-icon">⭐</span>
                     <span>GOLD</span>
                 </div>
             )}
             {isPremium && (
                 <div class="venue-ribbon premium-ribbon">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M5 16L3 14l3-3 3 3zm14-6l-3-3 3-3 3 3zM12 19l-7-7 3-3 4 4 4-4 3 3z"/>
-                    </svg>
+                    <span class="ribbon-icon">✨</span>
                     <span>PREMIUM</span>
                 </div>
             )}
             
             <!-- Quick Actions -->
             <div class="venue-actions">
-                <button class="action-btn" title="View gallery">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="3" width="18" height="18" rx="2"/>
-                        <circle cx="8.5" cy="8.5" r="1.5"/>
-                        <path d="M21 15l-5-5L5 21"/>
-                    </svg>
-                </button>
+                <button class="action-btn" title="View gallery">📸</button>
             </div>
             
             <!-- View Button on Hover -->
             <div class="venue-cta">
-                <span class="cta-btn">
-                    View Details
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M5 12h14M12 5l7 7-7 7"/>
-                    </svg>
-                </span>
+                <span class="cta-btn">View Details →</span>
             </div>
         </div>
     </a>
@@ -89,10 +74,7 @@ const shortDesc = listing.description ? listing.description.substring(0, 90) + '
         
         <!-- Location -->
         <div class="venue-location">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
-                <circle cx="12" cy="10" r="3"/>
-            </svg>
+            <span class="loc-icon">📍</span>
             <span>{listing.city}, {listing.country}</span>
             {listing.country_flag && (
                 <img src={listing.country_flag} alt="" class="flag-icon" />
@@ -107,10 +89,7 @@ const shortDesc = listing.description ? listing.description.substring(0, 90) + '
         <!-- Footer -->
         <div class="venue-footer">
             <a href={'/'+listing.slug} class="venue-link">
-                Explore venue
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M5 12h14M12 5l7 7-7 7"/>
-                </svg>
+                Explore venue →
             </a>
         </div>
     </div>

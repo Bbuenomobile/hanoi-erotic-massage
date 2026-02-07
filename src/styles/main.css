@@ -461,7 +461,7 @@ body.menu-open {
 .hero-static {
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, #e91e63 0%, #9C27B0 100%);
+    background: linear-gradient(135deg, #e91e63 0%, #9c27b0 100%);
     background-size: cover;
     background-position: center;
     z-index: 1;

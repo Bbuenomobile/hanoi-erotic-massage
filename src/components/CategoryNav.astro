@@ -35,17 +35,42 @@ const clubCategories = [
     { slug: 'nightclub-adult', name: 'Adult Nightclub', icon: '🌙', description: 'Adults-only venue' },
 ];
 
+// Fake categories for swinger clubs
+const swingerCategories = [
+    { slug: 'couples-club', name: 'Couples Club', icon: '💑', description: 'Private club for couples' },
+    { slug: 'lifestyle-club', name: 'Lifestyle Club', icon: '🌟', description: 'Open-minded venue' },
+    { slug: 'private-party-club', name: 'Private Party', icon: '🎭', description: 'Exclusive parties' },
+    { slug: 'adult-sauna-club', name: 'Adult Sauna', icon: '♨️', description: 'Sauna with entertainment' },
+    { slug: 'libertine-club', name: 'Libertine Club', icon: '🔥', description: 'Libertine venue' },
+    { slug: 'fetish-club', name: 'Fetish Club', icon: '⛓️', description: 'Fetish & BDSM' },
+    { slug: 'nudist-club', name: 'Nudist Club', icon: '🏖️', description: 'Naturist venue' },
+    { slug: 'sex-party', name: 'Sex Party Venue', icon: '🎉', description: 'Organized adult events' },
+];
+
 // Select categories based on main category
-const categories = mainCategory === 'gentlemens-club' ? clubCategories : massageCategories;
-const sectionTitle = mainCategory === 'gentlemens-club' ? 'Club Types' : 'Massage Types';
-const mainLink = mainCategory === 'gentlemens-club' 
-    ? { url: 'https://erotikmaps.com/gentlemens-club', text: "gentlemen's clubs" }
-    : { url: 'https://erotikmaps.com/erotic-massage', text: 'erotic massage venues' };
+const categoryMap: Record<string, any[]> = {
+    'erotic-massage': massageCategories,
+    'gentlemens-club': clubCategories,
+    'swinger-club': swingerCategories,
+};
+const titleMap: Record<string, string> = {
+    'erotic-massage': 'Massage Types',
+    'gentlemens-club': 'Club Types',
+    'swinger-club': 'Venue Types',
+};
+const linkMap: Record<string, { url: string; text: string }> = {
+    'erotic-massage': { url: 'https://erotikmaps.com/erotic-massage', text: 'erotic massage venues' },
+    'gentlemens-club': { url: 'https://erotikmaps.com/gentlemens-club', text: "gentlemen's clubs" },
+    'swinger-club': { url: 'https://erotikmaps.com/swinger-club', text: 'swinger clubs' },
+};
+const categories = categoryMap[mainCategory] || massageCategories;
+const sectionTitle = titleMap[mainCategory] || 'Venue Types';
+const mainLink = linkMap[mainCategory] || { url: 'https://erotikmaps.com/erotic-massage', text: 'adult venues' };
 ---
 
 <section class="category-nav" id="categories">
     <div class="container">
-        <h2>Explore {sectionTitle} in {city}</h2>
+        <h2>Browse {sectionTitle} in {city}</h2>
         <p class="nav-subtitle">Find the perfect experience for you</p>
         <div class="category-grid">
             {categories.map((cat) => (

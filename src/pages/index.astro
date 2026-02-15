@@ -134,7 +134,7 @@ const heroListings = [...goldListings, ...premiumListings.filter((l: any) => !l.
 ---
 
 <Base 
-    title="Best Erotic Massage in Hanoi | Ultimate 2026 Guide"
+    title="Best Erotic Massage in Hanoi Vietnam | Ultimate Guide"
     description="Discover the sensual world of erotic massage in Hanoi. Explore all verified venues blending Vietnamese sensuality with Old Quarter charm. Book your exotic escape today for ultimate relaxation!"
     canonical={canonicalUrl}
     image={heroListings.length > 0 ? heroListings[0].thumbnail : 'https://erotikmaps.com/images/og-default.jpg'}
@@ -142,11 +142,11 @@ const heroListings = [...goldListings, ...premiumListings.filter((l: any) => !l.
     <!-- Compact Hero Section -->
     <section class="hero-compact">
         <div class="container">
-            <h1>Unveil Sensual Secrets: Premier Erotic Massage in Hanoi</h1>
-            <p class="hero-subtitle">{listings.length} verified venues {isCountryFallback ? 'in ' + 'Vietnam' : 'in ' + 'Hanoi'}</p>
+            <h1>Erotic Massage in Hanoi Vietnam</h1>
+            <p class="hero-subtitle">{listings.length > 0 ? listings.length + ' verified listings' : 'Directory growing'} {isCountryFallback ? 'in ' + 'Vietnam' : 'in ' + 'Hanoi'}</p>
             <div class="hero-badges">
                 {goldListings.length > 0 && <span class="badge-stat gold">⭐ {goldListings.length} Gold</span>}
-                {premiumListings.length > 0 && <span class="badge-stat premium">✨ {premiumListings.length} Premium</span>}
+                {premiumListings.length > 0 && <span class="badge-stat premium">✨ {premiumListings.length} Silver</span>}
             </div>
             <p class="last-updated">📅 Last updated: {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
         </div>
@@ -166,11 +166,14 @@ const heroListings = [...goldListings, ...premiumListings.filter((l: any) => !l.
                 <h2><span class="heading-icon" aria-hidden="true">🏢</span> Best Erotic Massage in Hanoi</h2>
                 {isCountryFallback ? (
                     <p class="listings-intro fallback-notice">
-                        📍 No venues listed in Hanoi yet. Showing {listings.length} verified venues from <strong>Vietnam</strong> that you might like.
+                        📍 Our Hanoi directory is growing. In the meantime, here are {listings.length} verified listings from Vietnam you may find interesting.
                     </p>
                 ) : (
                     <p class="listings-intro">
-                        Browse our curated selection of {listings.length} verified erotic massage venues in Hanoi. Gold ⭐ and Premium ✨ listings are displayed first.
+                        {listings.length > 0 
+                            ? `Browse ${listings.length} verified erotic massage listings in Hanoi. Gold and Silver listings appear first.`
+                            : `We are building our erotic massage directory for Hanoi. New listings are added regularly.`
+                        }
                     </p>
                 )}
             </div>
@@ -181,7 +184,10 @@ const heroListings = [...goldListings, ...premiumListings.filter((l: any) => !l.
             </div>
             
             {listings.length === 0 && (
-                <p class="no-listings">No listings found in Hanoi or Vietnam. Be the first to <a href="/advertise">add your venue</a>!</p>
+                <div class="no-listings">
+                    <p>We are currently building our directory for Hanoi. New listings are added regularly.</p>
+                    <p>Own a erotic massage business in Hanoi? <a href="/advertise">Add your listing for free</a> and be among the first to appear here.</p>
+                </div>
             )}
         </div>
     </section>
@@ -224,9 +230,9 @@ const heroListings = [...goldListings, ...premiumListings.filter((l: any) => !l.
             <details open>
                 <summary class="toc-title">📑 Quick Navigation</summary>
                 <ul class="toc-list">
-                    <li><a href="#all-listings">🏢 All {listings.length} Venues</a></li>
+                    <li><a href="#all-listings">🏢 {listings.length > 0 ? `All ${listings.length} Listings` : 'Browse Listings'}</a></li>
                     <li><a href="#about">📖 About Erotic Massage</a></li>
-                    <li><a href="#categories">🏷️ Massage Types</a></li>
+                    <li><a href="#categories">🏷️ Venue Types</a></li>
                     {faq && faq.length > 0 && <li><a href="#faq">❓ FAQ ({faq.length} questions)</a></li>}
                     <li><a href="#local-guide">🗺️ Local Guide</a></li>
                     <li><a href="#pricing">💰 Pricing Guide</a></li>
@@ -263,76 +269,75 @@ const heroListings = [...goldListings, ...premiumListings.filter((l: any) => !l.
         </section>
     )}
     
-    <!-- Local Guide Section - Unique SEO Content -->
+    <!-- Local Guide Section - AI-Generated Unique SEO Content -->
     <section class="local-guide" id="local-guide">
         <div class="container">
             <h2><span class="heading-icon" aria-hidden="true">🗺️</span> Erotic Massage Guide for Hanoi</h2>
             <div class="guide-grid">
                 <div class="guide-card">
-                    <h3><span class="heading-icon" aria-hidden="true">🏙️</span> Best Areas</h3>
-                    <p>Find Erotic Massage venues throughout Hanoi, from the city center to quieter neighborhoods. Each area offers unique experiences and atmospheres.</p>
+                    <h3><span class="heading-icon" aria-hidden="true">🏙️</span> Where to Find Venues</h3>
+                    <p>{`Find Erotic Massage locations throughout Hanoi. Our listings cover various areas from the city center to surrounding neighborhoods.`}</p>
                 </div>
                 <div class="guide-card">
-                    <h3><span class="heading-icon" aria-hidden="true">⏰</span> Best Times to Visit</h3>
-                    <p>Most Erotic Massage establishments in Hanoi operate from late morning until late evening. We recommend booking in advance, especially on weekends.</p>
+                    <h3><span class="heading-icon" aria-hidden="true">⏰</span> When to Visit</h3>
+                    <p>{`Most places operate from late morning until late evening. Booking in advance is recommended, especially on weekends and evenings.`}</p>
                 </div>
                 <div class="guide-card">
-                    <h3><span class="heading-icon" aria-hidden="true">💳</span> Payment Methods</h3>
-                    <p>Venues in Hanoi typically accept cash and cards. Some premium establishments may offer discreet billing options. Always confirm payment methods when booking.</p>
+                    <h3><span class="heading-icon" aria-hidden="true">💳</span> Payment Info</h3>
+                    <p>{`Most places accept cash and cards. Confirm payment methods when booking. ATMs are generally available nearby.`}</p>
                 </div>
                 <div class="guide-card">
-                    <h3><span class="heading-icon" aria-hidden="true">🌐</span> Language</h3>
-                    <p>Many Erotic Massage venues in Hanoi have English-speaking staff. For the best experience, you can use translation apps or contact venues via WhatsApp.</p>
+                    <h3><span class="heading-icon" aria-hidden="true">🌐</span> Language Tips</h3>
+                    <p>{`Many locations have English-speaking staff. For easier communication, you can use WhatsApp to reach out before visiting.`}</p>
                 </div>
             </div>
             <div class="guide-tips">
                 <h3><span class="heading-icon" aria-hidden="true">💡</span> Tips for First-Time Visitors</h3>
                 <ul>
-                    <li>✓ Always verify the venue is still operating by contacting them directly</li>
-                    <li>✓ Read our listings carefully for services offered and pricing ranges</li>
-                    <li>✓ Look for Gold and Premium badges for verified quality establishments</li>
-                    <li>✓ Book in advance during peak hours (evenings and weekends)</li>
-                    <li>✓ Respect the venue's rules and staff at all times</li>
+                    <li>✓ Contact the venue directly to confirm they are open before visiting</li>
+                    <li>✓ Check our listings for services offered, photos, and pricing</li>
+                    <li>✓ Look for Gold ⭐ and Silver ✨ badges for verified establishments</li>
+                    <li>✓ Book in advance during evenings and weekends for the best availability</li>
+                    <li>✓ Respect the venue's rules, staff, and other guests</li>
                 </ul>
             </div>
         </div>
     </section>
     
-    <!-- Pricing Guide Section -->
+    <!-- Pricing Guide Section - AI-Generated Unique Content -->
     <section class="pricing-guide" id="pricing">
         <div class="container">
             <h2><span class="heading-icon" aria-hidden="true">💰</span> Erotic Massage Pricing in Hanoi</h2>
-            <p class="pricing-intro">Prices for Erotic Massage services in Hanoi vary based on the venue, services, and duration. Here's a general guide:</p>
+            <p class="pricing-intro">Prices for Erotic Massage services in Hanoi depend on the venue, service type, and duration.</p>
             <div class="pricing-table">
                 <div class="price-tier">
                     <span class="tier-label">Budget</span>
-                    <span class="tier-range">💵 Lower price range</span>
-                    <p>Basic services at smaller venues. Good for first-time visitors.</p>
+                    <span class="tier-range">{`Contact for pricing`}</span>
+                    <p>Smaller or newer venues. Suitable for first-time visitors looking to try the experience.</p>
                 </div>
                 <div class="price-tier featured">
                     <span class="tier-label">⭐ Mid-Range</span>
-                    <span class="tier-range">💵💵 Average prices</span>
-                    <p>Quality service at established venues. Most popular choice.</p>
+                    <span class="tier-range">{`Contact for pricing`}</span>
+                    <p>Established venues with good reviews. The most popular choice among visitors.</p>
                 </div>
                 <div class="price-tier">
-                    <span class="tier-label">✨ Premium</span>
-                    <span class="tier-range">💵💵💵 Higher prices</span>
-                    <p>Luxury experiences at top-rated Gold establishments.</p>
+                    <span class="tier-label">✨ High-End</span>
+                    <span class="tier-range">{`Contact for pricing`}</span>
+                    <p>Top-rated Gold and Silver establishments with extended services and quality amenities.</p>
                 </div>
             </div>
-            <p class="pricing-note">💡 <strong>Tip:</strong> Contact venues directly for exact pricing. Prices may vary based on services and session duration.</p>
+            <p class="pricing-note">💡 <strong>Tip:</strong> {`Prices may vary based on services selected and session duration. Contact listings directly for current rates.`}</p>
         </div>
     </section>
     
     <!-- Bottom Section / Call to Action -->
     <section class="bottom-content">
         <div class="container">
-            <h2>Find Your Perfect Erotic Massage Experience in Hanoi</h2>
             <div class="bottom-content-text" set:html={bottomHtml} />
             
             <div class="cta-box">
                 <h3>Looking for something specific?</h3>
-                <p>Browse through our {listings.length} listings above, or click on any venue to see full details, photos, and contact information.</p>
+                <p>{listings.length > 0 ? `Browse our ${listings.length} listings above, or click on any listing for photos and contact info.` : 'Check back soon as we add new listings to this directory regularly.'}</p>
                 <a href="#all-listings" class="btn-primary">Browse All Listings</a>
             </div>
         </div>
@@ -343,7 +348,7 @@ const heroListings = [...goldListings, ...premiumListings.filter((l: any) => !l.
     <script type="application/ld+json" set:html={JSON.stringify({
         "@context": "https://schema.org",
         "@type": "ItemList",
-        "name": "Best Erotic Massage in Hanoi | Ultimate 2026 Guide",
+        "name": "Best Erotic Massage in Hanoi Vietnam | Ultimate Guide",
         "description": "Discover the sensual world of erotic massage in Hanoi. Explore all verified venues blending Vietnamese sensuality with Old Quarter charm. Book your exotic escape today for ultimate relaxation!",
         "url": canonicalUrl,
         "numberOfItems": listings.length,
@@ -384,7 +389,7 @@ const heroListings = [...goldListings, ...premiumListings.filter((l: any) => !l.
     <script type="application/ld+json" set:html={JSON.stringify({
         "@context": "https://schema.org",
         "@type": "WebPage",
-        "name": "Best Erotic Massage in Hanoi | Ultimate 2026 Guide",
+        "name": "Best Erotic Massage in Hanoi Vietnam | Ultimate Guide",
         "description": "Discover the sensual world of erotic massage in Hanoi. Explore all verified venues blending Vietnamese sensuality with Old Quarter charm. Book your exotic escape today for ultimate relaxation!",
         "url": canonicalUrl,
         "isPartOf": {
@@ -745,7 +750,21 @@ const heroListings = [...goldListings, ...premiumListings.filter((l: any) => !l.
         color: var(--text-light);
         line-height: 1.7;
     }
-    .about-content p { margin-bottom: 12px; }
+    .about-content p { margin-bottom: 14px; }
+    .about-content h2 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-top: 32px;
+        margin-bottom: 12px;
+        color: var(--text);
+        padding-top: 12px;
+        border-top: 1px solid rgba(0,0,0,0.06);
+    }
+    .about-content h2:first-child {
+        margin-top: 0;
+        padding-top: 0;
+        border-top: none;
+    }
     
     /* Listings Section */
     .listings-header {

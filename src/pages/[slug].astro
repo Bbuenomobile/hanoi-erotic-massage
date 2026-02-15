@@ -180,7 +180,7 @@ const metaDesc = fullListing.description
                 <div class="hero-image-container">
                     <img 
                         src={listing.thumbnail} 
-                        alt={`${listing.name} - Professional Erotic Massage venue in Hanoi, Vietnam. ${listing.is_gold ? 'Gold verified establishment.' : listing.is_premium ? 'Premium verified venue.' : 'Quality adult wellness services.'}`}
+                        alt={`${listing.name} - Professional Erotic Massage venue in Hanoi, Vietnam. ${listing.is_gold ? 'Gold verified establishment.' : listing.is_premium ? 'Silver verified listing.' : 'Quality adult wellness services.'}`}
                         class="hero-bg-image"
                         loading="eager"
                         itemprop="image"
@@ -190,7 +190,7 @@ const metaDesc = fullListing.description
                 <div class="hero-content">
                     <div class="hero-badges">
                         {listing.is_gold && <span class="hero-badge gold"><span class="badge-icon">🏆</span> Gold Verified</span>}
-                        {listing.is_premium && !listing.is_gold && <span class="hero-badge premium"><span class="badge-icon">⭐</span> Premium</span>}
+                        {listing.is_premium && !listing.is_gold && <span class="hero-badge premium"><span class="badge-icon">⭐</span> Silver</span>}
                     </div>
                     <h1 itemprop="name">{listing.name}</h1>
                     <p class="hero-location" itemprop="address" itemscope itemtype="https://schema.org/PostalAddress">
@@ -198,6 +198,13 @@ const metaDesc = fullListing.description
                         <span itemprop="addressLocality">{listing.city}</span>, 
                         <span itemprop="addressCountry">{listing.country}</span>
                     </p>
+                    {fullListing.updated_at && (
+                        <p class="listing-last-updated">
+                            <time datetime={fullListing.updated_at} itemprop="dateModified">
+                                Updated {new Date(fullListing.updated_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                            </time>
+                        </p>
+                    )}
                 </div>
             </header>
             
@@ -438,7 +445,7 @@ const metaDesc = fullListing.description
                         <p>
                             Looking for quality Erotic Massage services in Hanoi? 
                             {listing.name} is one of the {total} verified establishments we feature in the Hanoi area.
-                            {listing.is_premium ? " As a premium listing, this venue has been verified for quality and reliability." : ""}
+                            {listing.is_premium ? " As a Silver listing, this place has been verified for quality and reliability." : ""}
                             {listing.is_gold ? " This Gold-rated venue is among the highest-rated in Hanoi." : ""}
                         </p>
                         <ul>
@@ -465,7 +472,7 @@ const metaDesc = fullListing.description
                         <p>
                             As listing #{position} of {total} in our Hanoi directory, {listing.name} has been 
                             {listing.is_gold ? "awarded our Gold verification for exceptional service quality" : 
-                             listing.is_premium ? "verified as a Premium establishment" : 
+                             listing.is_premium ? "verified as a Silver establishment" : 
                              "verified and added to our curated selection of Erotic Massage venues"}.
                         </p>
                         <h3>What to Expect</h3>
@@ -524,7 +531,7 @@ const metaDesc = fullListing.description
                             </a>
                         )}
                         
-                        <!-- Website - nofollow unless Gold/Premium -->
+                        <!-- Website - nofollow unless Gold/Silver -->
                         {fullListing.website && (
                             <a 
                                 href={fullListing.website} 
@@ -562,7 +569,7 @@ const metaDesc = fullListing.description
                         <ul>
                             <li><a href="/">← All Erotic Massage in Hanoi</a></li>
                             <li><a href="/#faq">Frequently Asked Questions</a></li>
-                            <li><a href="/#premium">Premium Listings</a></li>
+                            <li><a href="/#premium">Silver Listings</a></li>
                         </ul>
                     </div>
                 </aside>
@@ -670,8 +677,8 @@ const metaDesc = fullListing.description
                                     </p>
                                 ) : listing.is_premium ? (
                                     <p>
-                                        ✅ <strong>Yes!</strong> {listing.name} is a <span class="badge premium">⭐ Premium Verified</span> venue. 
-                                        Premium venues have been reviewed and meet our quality standards for Erotic Massage services in Hanoi.
+                                        ✅ <strong>Yes!</strong> {listing.name} is a <span class="badge premium">⭐ Silver Verified</span> listing. 
+                                        Silver listings have been reviewed and meet our quality standards for Erotic Massage services in Hanoi.
                                     </p>
                                 ) : (
                                     <p>
@@ -719,7 +726,7 @@ const metaDesc = fullListing.description
         "@type": ["LocalBusiness", "HealthAndBeautyBusiness"],
         "@id": canonicalUrl,
         "name": listing.name,
-        "description": fullListing.description ? fullListing.description.replace(/<[^>]*>/g, '').substring(0, 300) : `Professional Erotic Massage venue located in Hanoi, Vietnam. Offering premium adult wellness and relaxation services.`,
+        "description": fullListing.description ? fullListing.description.replace(/<[^>]*>/g, '').substring(0, 300) : `Professional Erotic Massage venue located in Hanoi, Vietnam. Offering quality adult wellness and relaxation services.`,
         "url": canonicalUrl,
         "image": fullListing.gallery && fullListing.gallery.length > 0 
             ? [listing.thumbnail, ...fullListing.gallery.slice(0, 5).map((g: any) => g.url)]
@@ -807,9 +814,9 @@ const metaDesc = fullListing.description
         ].filter(Boolean),
         "knowsAbout": ["Erotic Massage", "Adult Wellness", "Relaxation Services", "Professional Massage", "Hanoi Massage"],
         "slogan": listing.is_gold 
-            ? "Gold Verified Premium Venue" 
+            ? "Gold Verified Venue" 
             : listing.is_premium 
-                ? "Premium Verified Venue" 
+                ? "Silver Verified Venue" 
                 : "Quality Erotic Massage Services"
     })}></script>
     
@@ -859,7 +866,7 @@ const metaDesc = fullListing.description
                     "text": listing.is_gold 
                         ? `Yes, ${listing.name} is a Gold Verified venue on our directory. Gold venues have been verified for quality, reliability, and excellent service. This is one of the top-rated Erotic Massage venues in Hanoi.`
                         : listing.is_premium
-                            ? `Yes, ${listing.name} is a Premium Verified venue. Premium venues have been reviewed and meet our quality standards for Erotic Massage services in Hanoi.`
+                            ? `Yes, ${listing.name} is a Silver Verified listing. Silver listings have been reviewed and meet our quality standards for Erotic Massage services in Hanoi.`
                             : `${listing.name} is listed in our Erotic Massage directory for Hanoi. We recommend contacting them directly to verify services and availability.`
                 }
             },

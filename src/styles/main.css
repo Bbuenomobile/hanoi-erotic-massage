@@ -600,10 +600,18 @@ body.menu-open {
 }
 
 .intro-content h2, .bottom-content-text h2 {
-    font-size: 1.5rem;
-    margin-top: 40px;
-    margin-bottom: 20px;
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-top: 36px;
+    margin-bottom: 16px;
     color: var(--text);
+    padding-top: 12px;
+    border-top: 1px solid rgba(0,0,0,0.06);
+}
+.intro-content h2:first-child, .bottom-content-text h2:first-child {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
 }
 
 /* Quick Navigation */
@@ -1008,6 +1016,20 @@ body.menu-open {
 
 .hero-location .location-icon {
     font-size: 1.1rem;
+}
+
+.listing-last-updated {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 6px;
+    font-style: italic;
+}
+
+.last-updated-hero {
+    font-size: 0.8rem;
+    opacity: 0.65;
+    margin-top: 8px;
+    font-style: italic;
 }
 
 /* Mobile adjustments */
